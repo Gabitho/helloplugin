@@ -2,7 +2,7 @@ plugins {
     java
 }
 
-group = "com.helloplugin"
+group = "com.pvpheads"
 version = "1.0"
 
 java {

@@ -1,4 +1,4 @@
-package com.tonplugin.listeners;
+package com.pvpheads.listeners;
 
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
