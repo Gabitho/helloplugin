@@ -1,0 +1,9 @@
+name: HelloPlugin
+version: 1.0
+main: com.tonplugin.HelloPlugin
+api-version: 1.20
+
+commands:
+  fakekill:
+    description: Simule la mort d’un joueur et donne sa tête.
+    usage: /fakekill <joueur>

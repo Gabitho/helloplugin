@@ -2,7 +2,7 @@ plugins {
     java
 }
 
-group = "com.gplugins"
+group = "com.helloplugin"
 version = "1.0"
 
 java {

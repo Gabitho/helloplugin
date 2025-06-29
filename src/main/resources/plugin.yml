@@ -1,7 +1,0 @@
-main: com.firstplugin.Main
-name: plugin_train
-version: 1.0
-api-version: 1.20
-commands:
-  gettnt:
-    description: Donne un TNT Launcher
