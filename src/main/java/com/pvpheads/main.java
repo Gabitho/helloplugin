@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.pvpheads.listeners.PlayerDeathListener;
 import com.pvpheads.recipes.DragonSwordRecipe;
 
-public class PvpHeadsPlugin extends JavaPlugin {
+public class main extends JavaPlugin {
     @Override
     public void onEnable() {
         getLogger().info("Plugin PvpHeads activé !");
