@@ -1,9 +1,9 @@
 package com.pvpheads;
 
-import com.tonplugin.commands.fakekillcommand;
-
+import com.pvpheads.commands.FakeKillCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.pvphead.listeners.PlayerDeathListener;
+import com.pvphead.recipes.DragonSwordRecipe;
 
 @Override
 public void onEnable() {
