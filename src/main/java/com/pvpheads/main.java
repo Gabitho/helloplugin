@@ -2,8 +2,8 @@ package com.pvpheads;
 
 import com.pvpheads.commands.FakeKillCommand;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.pvphead.listeners.PlayerDeathListener;
-import com.pvphead.recipes.DragonSwordRecipe;
+import com.pvpheads.listeners.PlayerDeathListener;
+import com.pvpheads.recipes.DragonSwordRecipe;
 
 public class PvpHeadsPlugin extends JavaPlugin {
     @Override
