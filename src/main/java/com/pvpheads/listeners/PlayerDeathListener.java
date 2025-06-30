@@ -1,13 +1,14 @@
 package com.pvpheads.listeners;
 
-import org.bukkit.Material;
-import org.bukkit.event.block.Action;
+import org.bukkit.*;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.Action; // ✅ L'import oublié
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 
 public class PlayerDeathListener implements Listener {
 
