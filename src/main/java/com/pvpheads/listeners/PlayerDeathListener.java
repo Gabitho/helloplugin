@@ -12,14 +12,19 @@ public class PlayerDeathListener implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player deceased = event.getEntity();
+        Player victim = event.getEntity();
+        Player killer = victim.getKiller();
+
+        if (killer == null) return; // Mort naturelle ou par environnement
+        if (killer.getUniqueId().equals(victim.getUniqueId())) return; // Se tuer soi-même => refusé
+
 
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
-        meta.setOwningPlayer(deceased);
-        meta.setDisplayName("§cTête de " + deceased.getName());
+        meta.setOwningPlayer(victim);
+        meta.setDisplayName("§cTête de " + victim.getName());
         skull.setItemMeta(meta);
 
-        deceased.getWorld().dropItemNaturally(deceased.getLocation(), skull);
+        victim.getWorld().dropItemNaturally(victim.getLocation(), skull);
     }
 }

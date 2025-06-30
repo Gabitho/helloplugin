@@ -18,6 +18,10 @@ public class DragonSwordListener implements Listener {
         // Ignore les clics main gauche (évite double déclenchement)
         if (event.getHand() != EquipmentSlot.HAND) return;
 
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
+
+
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
