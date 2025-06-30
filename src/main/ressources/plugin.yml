@@ -1,6 +1,6 @@
 name: pvpheads
 version: 1.0
-main: com.pvpheads.main
+main: com.pvpheads.Main
 api-version: 1.20
 
 commands:
