@@ -9,7 +9,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-public class DragonSwordUseListener implements Listener {
+public class DragonSwordListener implements Listener {
 
     private final NamespacedKey key = new NamespacedKey("pvpheads", "dragon_sword");
 
