@@ -3,6 +3,7 @@ package com.pvpheads;
 import com.pvpheads.commands.FakeKillCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.pvpheads.listeners.PlayerDeathListener;
+import com.pvpheads.listeners.DragonSwordListener;
 import com.pvpheads.recipes.DragonSwordRecipe;
 
 public class Main extends JavaPlugin {
@@ -12,6 +13,8 @@ public class Main extends JavaPlugin {
         
         // Enregistre les listeners
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new DragonSwordListener(), this);
+        
 
         // Enregistre la commande /fakekill
         this.getCommand("fakekill").setExecutor(new FakeKillCommand());
