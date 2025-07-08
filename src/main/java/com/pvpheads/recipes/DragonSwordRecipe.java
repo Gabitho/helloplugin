@@ -20,7 +20,9 @@ public class DragonSwordRecipe { // ← On déclare une classe qui contient uniq
         // 🎨 On modifie son apparence (nom affiché)
         ItemMeta meta = result.getItemMeta();
         meta.setDisplayName("§5Épée du Dragon"); // Le §5 rend le texte violet foncé
+        meta.setUnbreakable(true);
 
+        
         // 🧪 On crée une "clé" unique pour ce plugin, qui sera utilisée pour taguer l’objet
         NamespacedKey key = new NamespacedKey(plugin, "dragon_sword");
 
