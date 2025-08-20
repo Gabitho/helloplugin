@@ -87,8 +87,11 @@ public class DragonSwordListener implements Listener {
         fireball.setDirection(direction);
         fireball.setYield(0);
         fireball.setIsIncendiary(false);
+        
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.0f);
-
+        
+        cooldowns.put(player.getUniqueId(), currentTime)
+        startCooldownDisplay(player)
         // 🧪 Simulation cooldown visuel via ActionBar
         new BukkitRunnable() {
         int ticksPassed = 0;
@@ -114,10 +117,11 @@ public class DragonSwordListener implements Listener {
                 this.cancel();
             }
         }
+
+        cooldowns.put(player.getUniqueId(), currentTime)
+        
     }.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
 
-
-        
 }
 
 }
