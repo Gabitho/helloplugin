@@ -90,8 +90,8 @@ public class DragonSwordListener implements Listener {
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.0f);
         
-        cooldowns.put(player.getUniqueId(), currentTime)
-        startCooldownDisplay(player)
+        cooldowns.put(player.getUniqueId(), currentTime);
+        startCooldownDisplay(player);
         // 🧪 Simulation cooldown visuel via ActionBar
         new BukkitRunnable() {
         int ticksPassed = 0;
