@@ -118,7 +118,7 @@ public class DragonSwordListener implements Listener {
             }
         }
 
-        cooldowns.put(player.getUniqueId(), currentTime)
+        cooldowns.put(player.getUniqueId(), currentTime);
         
     }.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
 
