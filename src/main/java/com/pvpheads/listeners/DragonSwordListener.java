@@ -46,7 +46,7 @@ public class DragonSwordListener implements Listener {
     private final long cooldownTime = 5000; // 5 secondes
 
     // Durée du cooldown en ticks (1 tick = 1/20 sec) → 5s = 100 ticks
-    private final int cooldownTicks = cooldownTime/50;
+    private final int cooldownTicks = (int) (cooldownTime/50);
 
     private final Map<UUID, Long> cooldowns = new HashMap<>();
 
@@ -78,7 +78,7 @@ public class DragonSwordListener implements Listener {
         Location eye = player.getEyeLocation();
         Vector direction = eye.getDirection().normalize(); //Mettre le vecteur au scale : 1
 
-        Location spawnLoc = eye.clone().add(direction.multiply(1.2)).substract(0,0.5,0);
+        Location spawnLoc = eye.clone().add(direction.multiply(1.2)).subtract(0,0.5,0);
         
         DragonFireball fireball = player.getWorld().spawn(spawnLoc, DragonFireball.class);
         fireball.setShooter(player);
