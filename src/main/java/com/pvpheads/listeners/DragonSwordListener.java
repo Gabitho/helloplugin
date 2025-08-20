@@ -76,9 +76,9 @@ public class DragonSwordListener implements Listener {
 
         // 🐉 Souffle du dragon
         Location eye = player.getEyeLocation();
-        Vector direction = eye.getDirection().normalize() //Mettre le vecteur au scale : 1
+        Vector direction = eye.getDirection().normalize(); //Mettre le vecteur au scale : 1
 
-        Location spawnLoc = eye.clone().add(direction.multiply(1.2)).substract(0,0.5,0)
+        Location spawnLoc = eye.clone().add(direction.multiply(1.2)).substract(0,0.5,0);
         
         DragonFireball fireball = player.getWorld().spawn(spawnLoc, DragonFireball.class);
         fireball.setShooter(player);
