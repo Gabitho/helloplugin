@@ -87,16 +87,33 @@ public class DragonSwordListener implements Listener {
         fireball.setIsIncendiary(false);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.0f);
 
-        // 🧪 Simulation cooldown visuel via la barre de durabilité
-        int maxDurability = item.getType().getMaxDurability();
-        ItemStack finalItem = item;
+        // 🧪 Simulation cooldown visuel via ActionBar
+new BukkitRunnable() {
+    int ticksPassed = 0;
+    @Override
+    public void run() {
+        ticksPassed += 20; // incrémente toutes les secondes (20 ticks)
+        long secondsLeft = (cooldownTime - (ticksPassed * 50L)) / 1000;
 
-        // On met l’épée à durabilité "cassée"
-        if (finalItem.getItemMeta() instanceof Damageable) {
-            Damageable damageMeta = (Damageable) finalItem.getItemMeta();
-            damageMeta.setDamage(maxDurability);
-            finalItem.setItemMeta((ItemMeta) damageMeta);
+        if (secondsLeft > 0) {
+            player.spigot().sendMessage(
+                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(
+                    ChatColor.LIGHT_PURPLE + "⏳ Cooldown: " + secondsLeft + "s"
+                )
+            );
+        } else {
+            player.spigot().sendMessage(
+                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(
+                    ChatColor.GREEN + "✅ Épée rechargée !"
+                )
+            );
+            this.cancel();
         }
+    }
+}.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
+
 
         // Tâche Bukkit pour recharger la barre progressivement
         new BukkitRunnable() {
