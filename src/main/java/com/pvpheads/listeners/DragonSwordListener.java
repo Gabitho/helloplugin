@@ -36,6 +36,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 // AUTRES
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.ChatColor;
+
 
 
 public class DragonSwordListener implements Listener {
@@ -88,56 +90,34 @@ public class DragonSwordListener implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.0f);
 
         // 🧪 Simulation cooldown visuel via ActionBar
-new BukkitRunnable() {
-    int ticksPassed = 0;
-    @Override
-    public void run() {
-        ticksPassed += 20; // incrémente toutes les secondes (20 ticks)
-        long secondsLeft = (cooldownTime - (ticksPassed * 50L)) / 1000;
-
-        if (secondsLeft > 0) {
-            player.spigot().sendMessage(
-                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(
-                    ChatColor.LIGHT_PURPLE + "⏳ Cooldown: " + secondsLeft + "s"
-                )
-            );
-        } else {
-            player.spigot().sendMessage(
-                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(
-                    ChatColor.GREEN + "✅ Épée rechargée !"
-                )
-            );
-            this.cancel();
-        }
-    }
-}.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
-
-
-        // Tâche Bukkit pour recharger la barre progressivement
         new BukkitRunnable() {
-            int ticksPassed = 0;
-            @Override
-            public void run() {
-                ticksPassed += 2; // toutes les 2 ticks
-                int progress = (int) ((1 - (ticksPassed / (double) cooldownTicks)) * maxDurability);
+        int ticksPassed = 0;
+        @Override
+        public void run() {
+            ticksPassed += 20; // incrémente toutes les secondes (20 ticks)
+            long secondsLeft = (cooldownTime - (ticksPassed * 50L)) / 1000;
 
-                if (progress < 0) progress = 0;
-
-                if (finalItem.getItemMeta() instanceof Damageable) {
-                    Damageable meta = (Damageable) finalItem.getItemMeta();
-                    meta.setDamage(progress);
-                    finalItem.setItemMeta((ItemMeta) meta);
-                }
-
-                if (ticksPassed >= cooldownTicks) {
-                    this.cancel();
-                }
+            if (secondsLeft > 0) {
+                player.spigot().sendMessage(
+                    net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                    new net.md_5.bungee.api.chat.TextComponent(
+                        ChatColor.LIGHT_PURPLE + "⏳ Cooldown: " + secondsLeft + "s"
+                    )
+                );
+            } else {
+                player.spigot().sendMessage(
+                    net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                    new net.md_5.bungee.api.chat.TextComponent(
+                        ChatColor.GREEN + "✅ Épée rechargée !"
+                    )
+                );
+                this.cancel();
             }
-        }.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 2L); // exécute toutes les 2 ticks
+        }
+    }.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
 
-        cooldowns.put(uuid, now);
+
+        
 }
 
 }
