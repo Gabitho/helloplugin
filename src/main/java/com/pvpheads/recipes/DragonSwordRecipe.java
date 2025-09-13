@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.recipe
+import org.bukkit.recipe;
 
 /**
  * DragonSwordRecipe
