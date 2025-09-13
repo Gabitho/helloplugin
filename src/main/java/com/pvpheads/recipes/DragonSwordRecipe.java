@@ -103,8 +103,9 @@ public class DragonSwordRecipe implements Listener {
 
         // Avant d'ajouter : vérifie qu'il n'existe pas déjà une recette du même key
         boolean already = false;
-        for (Iterator<org.bukkit.recipe.Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
-            org.bukkit.recipe.Recipe r = it.next();
+        for (Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
+            Recipe r = it.next();
+}
             // si l'API expose getKey (nouvelle API), on peut comparer ; sinon on ignore
             try {
                 java.lang.reflect.Method m = r.getClass().getMethod("getKey");
