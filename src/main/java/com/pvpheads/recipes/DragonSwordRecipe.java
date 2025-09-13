@@ -111,7 +111,7 @@ public class DragonSwordRecipe implements Listener {
                 // ignore : pas grave si on ne peut pas déterminer la clé via réflexion
             }
         }
-
+    }
 
     /**
      * Intercepte la preview du craft et remplace le résultat par notre template cloné.
