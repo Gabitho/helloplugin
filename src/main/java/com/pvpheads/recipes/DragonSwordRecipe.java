@@ -18,7 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
  */
 public class DragonSwordRecipe implements Listener {
 
-    private final main plugin; // référence vers la classe principale
+    private final Main plugin; // référence vers la classe principale
     private final NamespacedKey recipeKey; // clé unique pour la recette
     private final NamespacedKey dragonSwordKey; // clé PDC pour identifier l’épée
 
