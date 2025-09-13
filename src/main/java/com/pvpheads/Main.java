@@ -20,6 +20,6 @@ public class Main extends JavaPlugin {
         this.getCommand("fakekill").setExecutor(new FakeKillCommand());
 
         // Enregistre la recette de l'épée du dragon
-        DragonSwordRecipe.register(this);
+        new DragonSwordRecipe(this);
     }
 }

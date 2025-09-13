@@ -1,6 +1,6 @@
 package com.pvpheads.recipes;
 
-import com.pvpheads.main;
+import com.pvpheads.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -25,7 +25,7 @@ public class DragonSwordRecipe implements Listener {
     // ⚡ L’objet modèle, créé une seule fois au démarrage
     private final ItemStack dragonSwordTemplate;
 
-    public DragonSwordRecipe(main plugin) {
+    public DragonSwordRecipe(Main plugin) {
         this.plugin = plugin;
 
         // on génère des clés uniques pour notre plugin
