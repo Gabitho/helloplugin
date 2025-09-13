@@ -1,18 +1,24 @@
 package com.pvpheads.recipes;
 
 import com.pvpheads.Main; // attention à la casse : ta classe principale doit s'appeler Main
+
+import java.util.Iterator;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.Recipe;
+
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.recipe;
 
 /**
  * DragonSwordRecipe
