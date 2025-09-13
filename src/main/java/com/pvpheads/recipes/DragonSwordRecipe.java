@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.recipe
 
 /**
  * DragonSwordRecipe
@@ -111,17 +112,6 @@ public class DragonSwordRecipe implements Listener {
             }
         }
 
-        if (!already) {
-            try {
-                Bukkit.addRecipe(recipe);
-                plugin.getLogger().info("Added DragonSword recipe successfully.");
-            } catch (Exception e) {
-                plugin.getLogger().severe("Failed to add DragonSword recipe: " + e.getMessage());
-            }
-        } else {
-            plugin.getLogger().warning("DragonSword recipe key already present; not adding again.");
-        }
-    }
 
     /**
      * Intercepte la preview du craft et remplace le résultat par notre template cloné.
