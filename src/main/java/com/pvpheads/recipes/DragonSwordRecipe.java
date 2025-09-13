@@ -1,50 +1,116 @@
-package com.pvpheads.recipes; // ← Le dossier où est ce fichier (doit correspondre au chemin réel)
+package com.pvpheads.recipes;
 
-import org.bukkit.Material; // Pour choisir les objets Minecraft (épée, œuf de dragon...)
-import org.bukkit.NamespacedKey; // Pour créer une clé unique dans le PDC
-import org.bukkit.inventory.ItemStack; // Représente un objet Minecraft dans le code
-import org.bukkit.inventory.ShapedRecipe; // Pour définir une recette avec une forme
-import org.bukkit.inventory.meta.ItemMeta; // Pour modifier les propriétés visibles (nom, lore...)
-import org.bukkit.persistence.PersistentDataContainer; // Pour stocker des données invisibles
-import org.bukkit.persistence.PersistentDataType; // Type des données dans le PDC
-import org.bukkit.plugin.Plugin; // Représente ton plugin (nécessaire pour les clés)
+import com.pvpheads.main;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.ChatColor;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.persistence.PersistentDataType;
 
-public class DragonSwordRecipe { // ← On déclare une classe qui contient uniquement la recette
+/**
+ * Gestion de la recette et de l'objet "Épée du Dragon"
+ */
+public class DragonSwordRecipe implements Listener {
 
-    // Cette méthode sera appelée dans ton plugin principal (onEnable)
-    public static void register(Plugin plugin) {
+    private final main plugin; // référence vers la classe principale
+    private final NamespacedKey recipeKey; // clé unique pour la recette
+    private final NamespacedKey dragonSwordKey; // clé PDC pour identifier l’épée
 
-        // 🛠 On commence par créer une épée en diamant
-        ItemStack result = new ItemStack(Material.DIAMOND_SWORD);
+    // ⚡ L’objet modèle, créé une seule fois au démarrage
+    private final ItemStack dragonSwordTemplate;
 
-        // 🎨 On modifie son apparence (nom affiché)
-        ItemMeta meta = result.getItemMeta();
-        meta.setDisplayName("§5Épée du Dragon"); // Le §5 rend le texte violet foncé
-        meta.setUnbreakable(true);
-        meta.setCustomModelData("1");
-        
-        // 🧪 On crée une "clé" unique pour ce plugin, qui sera utilisée pour taguer l’objet
-        NamespacedKey key = new NamespacedKey(plugin, "dragon_sword");
+    public DragonSwordRecipe(main plugin) {
+        this.plugin = plugin;
 
-        // 🧬 On accède au "PersistentDataContainer" de l’objet : une zone invisible où stocker des infos
-        PersistentDataContainer container = meta.getPersistentDataContainer();
+        // on génère des clés uniques pour notre plugin
+        this.recipeKey = new NamespacedKey(plugin, "dragon_sword_recipe");
+        this.dragonSwordKey = new NamespacedKey(plugin, "dragon_sword");
 
-        // 🏷 On y met une info "dragon_sword" avec notre clé, pour l'identifier plus tard
-        container.set(key, PersistentDataType.STRING, "dragon_sword");
+        // on crée l’épée "modèle" une seule fois
+        this.dragonSwordTemplate = createDragonSword();
 
-        // ✔️ On applique les changements de nom + tag
-        result.setItemMeta(meta);
+        // on enregistre la recette
+        registerRecipe();
 
-        // 🍳 On crée une recette en forme (craft personnalisé)
-        ShapedRecipe recipe = new ShapedRecipe(key, result);
-        recipe.shape(" D ", " S ", " H "); // Forme verticale : œuf, épée, tête
+        // on enregistre cette classe comme listener (pour intercepter le craft)
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
 
-        // 🔣 On définit ce que signifie chaque lettre dans la recette
+    /**
+     * Crée l’item "Épée du Dragon" avec CustomModelData (string) + PDC plugin
+     */
+    private ItemStack createDragonSword() {
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+
+        ItemMeta meta = sword.getItemMeta();
+        if (meta != null) {
+            // Nom custom
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
+
+            // CustomModelData en string (utilisé par ton pack)
+            meta.getPersistentDataContainer().set(
+                    new NamespacedKey("minecraft", "custom_model_data"),
+                    PersistentDataType.STRING,
+                    "dragon_sword"
+            );
+
+            // PDC spécifique à ton plugin → permet de détecter facilement l’arme
+            meta.getPersistentDataContainer().set(
+                    dragonSwordKey,
+                    PersistentDataType.STRING,
+                    "true"
+            );
+
+            sword.setItemMeta(meta);
+        }
+
+        return sword;
+    }
+
+    /**
+     * Déclare la recette de craft (utilise un "fallback" pour l’aperçu)
+     */
+    private void registerRecipe() {
+        // fallback = épée diamant normale (remplacée ensuite dans PrepareItemCraftEvent)
+        ItemStack fallback = new ItemStack(Material.DIAMOND_SWORD);
+
+        // Recette shapée
+        ShapedRecipe recipe = new ShapedRecipe(recipeKey, fallback);
+        recipe.shape("BDB", "BHB", "BSB");
+
+        // B = Dragon’s Breath
+        recipe.setIngredient('B', Material.DRAGON_BREATH);
+        // D = Dragon Egg
         recipe.setIngredient('D', Material.DRAGON_EGG);
-        recipe.setIngredient('S', Material.DIAMOND_SWORD);
+        // H = Player Head
         recipe.setIngredient('H', Material.PLAYER_HEAD);
+        // S = Diamond Sword
+        recipe.setIngredient('S', Material.DIAMOND_SWORD);
 
-        // 📥 On ajoute cette recette au jeu
-        plugin.getServer().addRecipe(recipe);
+        // enregistrement auprès de Bukkit
+        Bukkit.addRecipe(recipe);
+    }
+
+    /**
+     * Intercepte l’événement de "preview" du craft
+     * → permet de remplacer le fallback par l’item custom
+     */
+    @EventHandler
+    public void onPrepareCraft(PrepareItemCraftEvent event) {
+        if (event.getRecipe() == null) return;
+
+        // on vérifie que la recette correspond à la nôtre
+        if (event.getRecipe() instanceof ShapedRecipe shaped
+                && shaped.getKey().equals(recipeKey)) {
+
+            // ✅ clone du modèle → garde le nom, le PDC et le custom model data
+            event.getInventory().setResult(dragonSwordTemplate.clone());
+        }
     }
 }
