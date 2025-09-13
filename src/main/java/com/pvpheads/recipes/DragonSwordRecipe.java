@@ -105,7 +105,6 @@ public class DragonSwordRecipe implements Listener {
         boolean already = false;
         for (Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
             Recipe r = it.next();
-}
             // si l'API expose getKey (nouvelle API), on peut comparer ; sinon on ignore
             try {
                 java.lang.reflect.Method m = r.getClass().getMethod("getKey");
