@@ -21,6 +21,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Item; // entité item (drop)
+import org.bukkit.entity.Entity;
+
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.World;
 import org.bukkit.Location;
