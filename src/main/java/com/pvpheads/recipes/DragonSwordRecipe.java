@@ -1,27 +1,37 @@
 package com.pvpheads.recipes;
 
 import com.pvpheads.Main;
+
+import java.util.Iterator;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.Recipe;
+
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Iterator;
-
+/**
+ * DragonSwordRecipe
+ * - crée et enregistre la recette (fallback simple)
+ * - intercepte le craft et donne l'épée custom via /give
+ */
 public class DragonSwordRecipe implements Listener {
 
     private final Main plugin;
-    private final NamespacedKey recipeKey;
-    private final NamespacedKey dragonSwordKey;
+    private final NamespacedKey recipeKey;      // clé unique pour la recette plugin
+    private final NamespacedKey dragonSwordKey; // clé PDC pour l'item (plugin namespace)
 
     public DragonSwordRecipe(Main plugin) {
         this.plugin = plugin;
@@ -29,13 +39,17 @@ public class DragonSwordRecipe implements Listener {
         this.recipeKey = new NamespacedKey(plugin, "dragon_sword_recipe");
         this.dragonSwordKey = new NamespacedKey(plugin, "dragon_sword");
 
+        // enregistre la recette (fallback = DIAMOND_SWORD)
         registerRecipe();
+
+        // on enregistre ce listener
         Bukkit.getPluginManager().registerEvents(this, plugin);
+
         plugin.getLogger().info("DragonSwordRecipe initialised (key=" + recipeKey + ")");
     }
 
     /**
-     * Enregistre la recette vanilla (fallback simple).
+     * Enregistre la recette vanilla (fallback simple, sans NBT exotique)
      */
     private void registerRecipe() {
         ItemStack fallback = new ItemStack(Material.DIAMOND_SWORD);
@@ -48,8 +62,8 @@ public class DragonSwordRecipe implements Listener {
         recipe.setIngredient('S', Material.DIAMOND_SWORD);
 
         boolean already = false;
-        for (Iterator<org.bukkit.inventory.Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
-            org.bukkit.inventory.Recipe r = it.next();
+        for (Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
+            Recipe r = it.next();
             try {
                 java.lang.reflect.Method m = r.getClass().getMethod("getKey");
                 Object keyObj = m.invoke(r);
@@ -57,7 +71,9 @@ public class DragonSwordRecipe implements Listener {
                     already = true;
                     break;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                // ignore
+            }
         }
 
         if (!already) {
@@ -66,7 +82,7 @@ public class DragonSwordRecipe implements Listener {
     }
 
     /**
-     * Intercepte la preview : garde l’épée vanilla en preview.
+     * Intercepte la preview du craft -> on montre une simple épée vanilla (fallback).
      */
     @EventHandler
     public void onPrepareCraft(PrepareItemCraftEvent event) {
@@ -74,51 +90,64 @@ public class DragonSwordRecipe implements Listener {
 
         if (event.getRecipe() instanceof ShapedRecipe shaped
                 && shaped.getKey().equals(recipeKey)) {
-            // juste afficher le fallback vanilla
-            event.getInventory().setResult(new ItemStack(Material.DIAMOND_SWORD));
+            // affiche juste une épée vanilla en preview
+            ItemStack fallback = new ItemStack(Material.DIAMOND_SWORD);
+            ItemMeta meta = fallback.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
+                fallback.setItemMeta(meta);
+            }
+            event.getInventory().setResult(fallback);
         }
     }
 
     /**
-     * Quand le joueur termine le craft → on supprime le résultat vanilla
-     * et on lui donne la version custom via /give (nouvelle syntaxe).
+     * Quand le joueur termine réellement le craft, on annule le résultat
+     * et on exécute un /give avec custom_model_data et PDC.
      */
-    @EventHandler
-    public void onCraftItem(CraftItemEvent event) {
-        if (event.getRecipe() == null) return;
+@EventHandler
+public void onCraftItem(CraftItemEvent event) {
+    if (event.getRecipe() instanceof ShapedRecipe shaped
+            && shaped.getKey().equals(recipeKey)) {
 
-        if (event.getRecipe() instanceof ShapedRecipe shaped
-                && shaped.getKey().equals(recipeKey)) {
+        Player player = (Player) event.getWhoClicked();
 
-            event.setCancelled(true); // annule le craft vanilla
+        // annule le craft normal
+        event.setCurrentItem(null);
 
-            Player player = (Player) event.getWhoClicked();
-            player.closeInventory();
+        // --- 1) Donne l'épée via /give avec le bon rendu (client)
+        String giveCmd =
+            "give " + player.getName() +
+            " diamond_sword[" +
+            "minecraft:custom_model_data={strings:[\"dragon_sword\"]}," +
+            "minecraft:custom_name='{\"text\":\"Épée du Dragon\",\"color\":\"light_purple\"}'] 1";
 
-            // --- commande GIVE avec la nouvelle syntaxe (1.21.6)
-            String giveCmd =
-                "give " + player.getName() +
-                " diamond_sword[" +
-                "minecraft:custom_model_data=\"dragon_sword\"," +
-                "minecraft:custom_name='{\"text\":\"Épée du Dragon\",\"color\":\"light_purple\"}'] 1";
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
 
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
-
-            // --- après un tick, ajoute le PDC plugin à l’objet donné
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                ItemStack sword = player.getInventory().getItemInMainHand();
-                if (sword != null && sword.getType() == Material.DIAMOND_SWORD) {
-                    ItemMeta meta = sword.getItemMeta();
+        // --- 2) On attend un tick puis on ajoute le PDC côté serveur
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // on cherche la dernière épée donnée dans l'inventaire du joueur
+            for (ItemStack item : player.getInventory().getContents()) {
+                if (item != null && item.getType() == Material.DIAMOND_SWORD) {
+                    ItemMeta meta = item.getItemMeta();
                     if (meta != null) {
-                        meta.getPersistentDataContainer().set(
-                            dragonSwordKey,
-                            PersistentDataType.STRING,
-                            "true"
-                        );
-                        sword.setItemMeta(meta);
+                        // Vérifie si c'est bien l'épée du Dragon (via nom par ex.)
+                        if (meta.hasDisplayName() && meta.getDisplayName().contains("Épée du Dragon")) {
+                            // Ajoute le PDC plugin
+                            meta.getPersistentDataContainer().set(
+                                dragonSwordKey,
+                                PersistentDataType.STRING,
+                                "true"
+                            );
+                            item.setItemMeta(meta);
+                            plugin.getLogger().info("Ajout du PDC sur l'épée du Dragon de " + player.getName());
+                            break; // on s'arrête après la première trouvée
+                        }
                     }
                 }
-            }, 1L);
-        }
+            }
+        }, 1L); // 1 tick après le give
     }
+}
+
 }
