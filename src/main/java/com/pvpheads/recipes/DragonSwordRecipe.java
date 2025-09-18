@@ -147,7 +147,7 @@ public void onCraftItem(CraftItemEvent event) {
             RAW_JSON_NAME.replace("'", "\\'")
         );
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
-        final int finalSlot = targetSlot
+        final int finalSlot = targetSlot;
         // 2) 1 tick après le give, on cherche l'item donné, on le déplace dans targetSlot et on applique le PDC
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             // Cherche item donné dans l'inventaire
