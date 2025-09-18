@@ -147,7 +147,7 @@ public void onCraftItem(CraftItemEvent event) {
             RAW_JSON_NAME.replace("'", "\\'")
         );
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
-
+        final int finalSlot = targetSlot
         // 2) 1 tick après le give, on cherche l'item donné, on le déplace dans targetSlot et on applique le PDC
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             // Cherche item donné dans l'inventaire
@@ -169,8 +169,8 @@ public void onCraftItem(CraftItemEvent event) {
                 }
 
                 // place dans le slot cible (si possible)
-                if (targetSlot >= 0) {
-                    player.getInventory().setItem(targetSlot, given);
+                if (finalSlot >= 0) {
+                    player.getInventory().setItem(finalSlot, given);
                 } else {
                     // si pas de slot, on tente d'ajouter normalement (fallback)
                     player.getInventory().addItem(given);
@@ -192,8 +192,8 @@ public void onCraftItem(CraftItemEvent event) {
                                 stack.setItemMeta(sm);
                                 dropped.setItemStack(stack);
                                 // si on a un slot, on peut setItem à player, sinon laisser le drop
-                                if (targetSlot >= 0) {
-                                    player.getInventory().setItem(targetSlot, stack);
+                                if (finalSlot >= 0) {
+                                    player.getInventory().setItem(finalSlot, stack);
                                     dropped.remove();
                                 }
                                 break;
