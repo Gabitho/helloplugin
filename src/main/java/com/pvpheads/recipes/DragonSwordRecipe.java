@@ -3,6 +3,7 @@ package com.pvpheads.recipes;
 import com.pvpheads.Main;
 
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,33 +14,28 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.inventory.CraftItemEvent;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.Recipe;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.UUID;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Entity;
-import org.bukkit.Location;
-import org.bukkit.World;
-
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * DragonSwordRecipe
  * - crée et enregistre la recette (fallback simple)
- * - intercepte le craft et donne l'épée custom via /give
+ * - prépare un "template" ItemStack (nom + PDC plugin)
+ * - intercepte la préparation de craft et exécute un /give vanilla
  */
 public class DragonSwordRecipe implements Listener {
 
     private final Main plugin;
-    private final NamespacedKey recipeKey;      // clé unique pour la recette plugin
-    private final NamespacedKey dragonSwordKey; // clé PDC pour l'item (plugin namespace)
+    private final NamespacedKey recipeKey;      // clé unique pour la recette
+    private final NamespacedKey dragonSwordKey; // clé PDC pour marquer notre épée
+    private final ItemStack dragonSwordTemplate; // template clonable
 
     public DragonSwordRecipe(Main plugin) {
         this.plugin = plugin;
@@ -47,17 +43,45 @@ public class DragonSwordRecipe implements Listener {
         this.recipeKey = new NamespacedKey(plugin, "dragon_sword_recipe");
         this.dragonSwordKey = new NamespacedKey(plugin, "dragon_sword");
 
-        // enregistre la recette (fallback = DIAMOND_SWORD)
+        // on prépare notre template (nom + PDC)
+        this.dragonSwordTemplate = createDragonSwordTemplate();
+
+        // enregistre la recette vanilla fallback
         registerRecipe();
 
-        // on enregistre ce listener
+        // enregistre le listener
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        plugin.getLogger().info("DragonSwordRecipe initialised (key=" + recipeKey + ")");
+        plugin.getLogger().info("DragonSwordRecipe initialisé !");
     }
 
     /**
-     * Enregistre la recette vanilla (fallback simple, sans NBT exotique)
+     * Crée un ItemStack template pour la preview
+     */
+    private ItemStack createDragonSwordTemplate() {
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+        ItemMeta meta = sword.getItemMeta();
+        if (meta != null) {
+            // Nom lisible
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
+
+            // PDC plugin (pour détection serveur)
+            meta.getPersistentDataContainer().set(
+                dragonSwordKey,
+                PersistentDataType.STRING,
+                "true"
+            );
+
+            // Optionnel : CustomModelData numérique si tu veux une preview texturée
+            // meta.setCustomModelData(1);
+
+            sword.setItemMeta(meta);
+        }
+        return sword;
+    }
+
+    /**
+     * Enregistre la recette fallback
      */
     private void registerRecipe() {
         ItemStack fallback = new ItemStack(Material.DIAMOND_SWORD);
@@ -69,6 +93,7 @@ public class DragonSwordRecipe implements Listener {
         recipe.setIngredient('H', Material.PLAYER_HEAD);
         recipe.setIngredient('S', Material.DIAMOND_SWORD);
 
+        // vérifie si déjà présent
         boolean already = false;
         for (Iterator<Recipe> it = Bukkit.recipeIterator(); it.hasNext();) {
             Recipe r = it.next();
@@ -79,183 +104,66 @@ public class DragonSwordRecipe implements Listener {
                     already = true;
                     break;
                 }
-            } catch (Exception ex) {
-                // ignore
-            }
+            } catch (Exception ignored) {}
         }
 
         if (!already) {
             Bukkit.addRecipe(recipe);
+            plugin.getLogger().info("✅ Recette DragonSword enregistrée !");
+        } else {
+            plugin.getLogger().warning("⚠️ Recette DragonSword déjà existante !");
         }
     }
 
+    /**
+     * Intercepte la préparation du craft
+     */
+    @EventHandler
+    public void onPrepareCraft(PrepareItemCraftEvent event) {
+        if (event.getRecipe() == null) return;
 
-private final Map<UUID, ItemStack[]> inventorySnapshots = new HashMap<>();
-private static final String RAW_JSON_NAME = "{\"text\":\"Épée du Dragon\",\"color\":\"light_purple\"}";
+        if (event.getRecipe() instanceof ShapedRecipe shaped
+                && shaped.getKey().equals(recipeKey)) {
 
-// Prepare : on prend un snapshot (appelé avant que le joueur prenne le résultat)
-@EventHandler
-public void onPrepareCraft(PrepareItemCraftEvent event) {
-    if (event.getRecipe() == null) return;
-    if (!(event.getRecipe() instanceof ShapedRecipe shaped)) return;
-    if (!shaped.getKey().equals(recipeKey)) return;
+            Player player = (Player) event.getView().getPlayer();
 
-    if (!(event.getView().getPlayer() instanceof Player player)) return;
+            // Met une preview (simple diamant épée renommée)
+            event.getInventory().setResult(dragonSwordTemplate.clone());
 
-    // clone de l'inventaire actuel (avant que le joueur prenne le résultat)
-    ItemStack[] contents = player.getInventory().getContents();
-    ItemStack[] copy = new ItemStack[contents.length];
-    for (int i = 0; i < contents.length; i++) {
-        ItemStack it = contents[i];
-        copy[i] = (it == null) ? null : it.clone();
-    }
-    inventorySnapshots.put(player.getUniqueId(), copy);
+            // Quand le joueur prend le résultat, on lui donne via /give
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    ItemStack result = event.getInventory().getResult();
+                    if (result != null && result.isSimilar(dragonSwordTemplate)) {
 
-    // Optionnel : tu peux aussi afficher une preview ici si tu veux
-}
+                        // Commande vanilla /give avec custom_model_data en string
+                        String giveCmd =
+                                "give " + player.getName() +
+                                " diamond_sword[" +
+                                "minecraft:custom_model_data=\"dragon_sword\"," +
+                                "minecraft:custom_name='{\"text\":\"Épée du Dragon\",\"color\":\"light_purple\"}'] 1";
 
-// Craft : le joueur prend l'item, on attend 1 tick pour voir où l'item a atterri
-@EventHandler
-public void onCraftItem(CraftItemEvent event) {
-    if (event.getRecipe() == null) return;
-    if (!(event.getRecipe() instanceof ShapedRecipe shaped)) return;
-    if (!shaped.getKey().equals(recipeKey)) return;
-    if (!(event.getWhoClicked() instanceof Player)) return;
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
 
-    Player player = (Player) event.getWhoClicked();
-
-    // on n'annule PAS (on laisse le comportement vanilla, pour que le joueur prenne l'item)
-    // mais on schedule une tâche 1 tick plus tard pour repérer le slot modifié
-    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-        UUID uid = player.getUniqueId();
-        ItemStack[] before = inventorySnapshots.remove(uid);
-        ItemStack[] after = player.getInventory().getContents();
-
-        int targetSlot = findSlotDifference(before, after); // méthode définie plus bas
-        if (targetSlot == -1) {
-            // fallback : prend first empty ou première diamond_sword trouvée
-            targetSlot = player.getInventory().firstEmpty();
-            if (targetSlot == -1) {
-                // inventaire plein : laisser tomber — on gérera via drop reposition
-            }
-        }
-
-        // 1) on lance le /give (donne l'item avec custom_model_data string côté client)
-        String giveCmd = String.format(
-            "give %s diamond_sword[minecraft:custom_model_data={strings:[\"dragon_sword\"]},minecraft:custom_name='%s'] 1",
-            player.getName(),
-            RAW_JSON_NAME.replace("'", "\\'")
-        );
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
-        final int finalSlot = targetSlot;
-        // 2) 1 tick après le give, on cherche l'item donné, on le déplace dans targetSlot et on applique le PDC
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            // Cherche item donné dans l'inventaire
-            int givenIndex = findGivenSwordIndex(player);
-            if (givenIndex != -1) {
-                // récupère l'item donné
-                ItemStack given = player.getInventory().getItem(givenIndex);
-                if (given == null) return;
-
-                // retire la donnée depuis sa position actuelle
-                player.getInventory().setItem(givenIndex, null);
-
-                // applique PDC + nom lisible
-                ItemMeta meta = given.getItemMeta();
-                if (meta != null) {
-                    meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
-                    meta.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
-                    given.setItemMeta(meta);
-                }
-
-                // place dans le slot cible (si possible)
-                if (finalSlot >= 0) {
-                    player.getInventory().setItem(finalSlot, given);
-                } else {
-                    // si pas de slot, on tente d'ajouter normalement (fallback)
-                    player.getInventory().addItem(given);
-                }
-                player.updateInventory();
-            } else {
-                // Si on n'a pas trouvé dans l'inventaire : chercher les drops proches (overflow)
-                World w = player.getWorld();
-                Location loc = player.getLocation();
-                for (Entity e : w.getNearbyEntities(loc, 4.0, 4.0, 4.0)) {
-                    if (e instanceof Item dropped) {
-                        ItemStack stack = dropped.getItemStack();
-                        if (stack != null && stack.getType() == Material.DIAMOND_SWORD) {
-                            ItemMeta sm = stack.getItemMeta();
-                            if (sm != null && RAW_JSON_NAME.equals(sm.getDisplayName())) {
-                                // applique PDC
-                                sm.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
-                                sm.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
-                                stack.setItemMeta(sm);
-                                dropped.setItemStack(stack);
-                                // si on a un slot, on peut setItem à player, sinon laisser le drop
-                                if (finalSlot >= 0) {
-                                    player.getInventory().setItem(finalSlot, stack);
-                                    dropped.remove();
+                        // Petit délai puis ajout du PDC serveur sur l’objet donné
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                ItemStack given = player.getInventory().getItemInMainHand();
+                                if (given != null && given.getType() == Material.DIAMOND_SWORD) {
+                                    ItemMeta meta = given.getItemMeta();
+                                    if (meta != null) {
+                                        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+                                        pdc.set(dragonSwordKey, PersistentDataType.STRING, "true");
+                                        given.setItemMeta(meta);
+                                    }
                                 }
-                                break;
                             }
-                        }
+                        }.runTaskLater(plugin, 2L);
                     }
                 }
-            }
-        }, 1L);
-
-    }, 1L);
-}
-
-// Compare deux arrays pour trouver le premier index modifié
-private int findSlotDifference(ItemStack[] before, ItemStack[] after) {
-    if (before == null) return -1;
-    int len = Math.min(before.length, after.length);
-    for (int i = 0; i < len; i++) {
-        ItemStack b = before[i];
-        ItemStack a = after[i];
-        if (!itemStackEqual(b, a)) return i;
-    }
-    // si la différence est plus haute (inventaire plus long), on retourne -1 (fallback)
-    return -1;
-}
-
-private boolean itemStackEqual(ItemStack a, ItemStack b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    if (a.getType() != b.getType()) return false;
-    if (a.getAmount() != b.getAmount()) return false;
-    // ne compare pas les metas complexes pour rester permissif
-    return true;
-}
-
-// cherche dans l'inventaire un item qui ressemble à celui donné par /give
-private int findGivenSwordIndex(Player player) {
-    ItemStack[] contents = player.getInventory().getContents();
-    for (int i = 0; i < contents.length; i++) {
-        ItemStack it = contents[i];
-        if (it == null) continue;
-        if (it.getType() != Material.DIAMOND_SWORD) continue;
-        ItemMeta meta = it.getItemMeta();
-        if (meta == null) continue;
-        // le /give laisse souvent le raw JSON comme displayName ; on le recherche en priorité
-        if (meta.hasDisplayName() && RAW_JSON_NAME.equals(meta.getDisplayName())) {
-            return i;
+            }.runTask(plugin);
         }
     }
-    // fallback : trouve première diamond_sword sans notre PDC
-    for (int i = 0; i < contents.length; i++) {
-        ItemStack it = contents[i];
-        if (it == null) continue;
-        if (it.getType() != Material.DIAMOND_SWORD) continue;
-        ItemMeta meta = it.getItemMeta();
-        if (meta == null) continue;
-        if (!meta.getPersistentDataContainer().has(dragonSwordKey, PersistentDataType.STRING)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-
 }
