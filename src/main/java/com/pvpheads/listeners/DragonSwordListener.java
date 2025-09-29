@@ -64,7 +64,7 @@ public class DragonSwordListener implements Listener {
         if (cooldowns.containsKey(uuid)) {
             long lastUse = cooldowns.get(uuid);
             if (now - lastUse < cooldownTime) {
-                long secondsLeft = (cooldownTime - (now - lastUse)) / 1000;
+                long secondsLeft = (cooldownTime - (now - lastUse)) / 1000 +1;
                 player.spigot().sendMessage(
                     net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
                     new net.md_5.bungee.api.chat.TextComponent(
@@ -98,7 +98,6 @@ public class DragonSwordListener implements Listener {
             int ticksPassed = 0;
             @Override
             public void run() {
-                ticksPassed += 20; // incrémente toutes les secondes (20 ticks)
                 long elapsed = ticksPassed * 50L;
                 long remaining = cooldownTime - elapsed;
 
@@ -119,6 +118,7 @@ public class DragonSwordListener implements Listener {
                     );
                     this.cancel();
                 }
+                ticksPassed += 20; // incrémente toutes les secondes (20 ticks)
             }
         }.runTaskTimer(Bukkit.getPluginManager().getPlugin("pvpheads"), 0L, 20L); // toutes les secondes
     }
