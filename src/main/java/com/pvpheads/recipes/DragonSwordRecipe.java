@@ -162,103 +162,86 @@ public class DragonSwordRecipe implements Listener {
         Player player = (Player) event.getWhoClicked();
         UUID uid = player.getUniqueId();
 
-        // Récupère le snapshot (peut être null si Prepare n'a pas été appelé)
-        ItemStack[] before = inventorySnapshots.remove(uid);
+        // Annule le transfert vanilla : on va tout gérer nous-même
+        event.setCancelled(true);
 
-        // On attend 1 tick pour laisser le transfert vanilla se faire (item mis en inventaire)
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            ItemStack[] after = player.getInventory().getContents();
+        // Optionnel : retire la preview immédiatement côté inventaire de la table (sécurité)
+        try {
+            event.getInventory().setResult(null);
+        } catch (Exception ignored) {}
 
-            int targetSlot = findSlotDifference(before, after); // -1 si non trouvé
-            final int finalSlot = targetSlot; // copie finale pour utiliser dans les lambdas
-
-            // 1) Supprime l'ingrédient diamond_sword dans la matrice de craft (force la consommation)
-            try {
-                CraftingInventory inv = (CraftingInventory) event.getInventory();
-                ItemStack[] matrix = inv.getMatrix();
-                for (int i = 0; i < matrix.length; i++) {
-                    ItemStack it = matrix[i];
-                    if (it != null && it.getType() == Material.DIAMOND_SWORD) {
-                        matrix[i] = null; // consomme l'ingrédient
-                        break;
-                    }
+        // Consommation manuelle de la matrice de craft (force la consommation de l'épée)
+        try {
+            CraftingInventory inv = (CraftingInventory) event.getInventory();
+            ItemStack[] matrix = inv.getMatrix();
+            for (int i = 0; i < matrix.length; i++) {
+                ItemStack it = matrix[i];
+                if (it != null && it.getType() == Material.DIAMOND_SWORD) {
+                    matrix[i] = null; // consomme l'ingrédient
+                    break;
                 }
-                inv.setMatrix(matrix);
-            } catch (Exception ex) {
-                // si cast / accès impossible, on ignore ; c'est un fallback
+            }
+            inv.setMatrix(matrix);
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Erreur en consommant la matrice: " + ex.getMessage());
+        }
+
+        // Donne l'item client-side avec custom_model_data (string) immédiatement
+        String giveCmd = String.format(
+            "give %s diamond_sword[minecraft:custom_model_data={strings:[\"dragon_sword\"]},minecraft:custom_name='%s'] 1",
+            player.getName().replace(" ", ""),
+            "{\"text\":\"Épée du Dragon\",\"color\":\"light_purple\"}".replace("'", "\\'")
+        );
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
+
+        // Appliquer PDC serveur sur l'item réellement donné 1 tick plus tard
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Recherche de l'épée donnée dans l'inventaire
+            int givenIndex = findGivenSwordIndex(player);
+
+            if (givenIndex != -1) {
+                ItemStack given = player.getInventory().getItem(givenIndex);
+                if (given != null && given.getType() == Material.DIAMOND_SWORD) {
+                    ItemMeta gmeta = given.getItemMeta();
+                    if (gmeta != null) {
+                        gmeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
+                        gmeta.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
+                        given.setItemMeta(gmeta);
+                    }
+
+                    // Si tu veux forcer le placement dans un slot particulier, fais-le ici.
+                    // Exemple : on laisse tel quel (on n'essaie pas de déplacer si trouvé ailleurs).
+                    player.updateInventory();
+                    return;
+                }
             }
 
-            // 2) Exécute la commande /give (1.21.4+ syntaxe, custom_model_data as string)
-            String giveCmd = String.format(
-                "give %s diamond_sword[minecraft:custom_model_data={strings:[\"dragon_sword\"]},minecraft:custom_name='%s'] 1",
-                player.getName().replace(" ", ""),
-                RAW_JSON_NAME.replace("'", "\\'")
-            );
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), giveCmd);
+            // Si on n'a pas trouvé dans l'inventaire, cherche un drop proche (overflow)
+            boolean applied = false;
+            World w = player.getWorld();
+            Location loc = player.getLocation();
+            for (Entity e : w.getNearbyEntities(loc, 4.0, 4.0, 4.0)) {
+                if (!(e instanceof Item)) continue;
+                Item dropped = (Item) e;
+                ItemStack stack = dropped.getItemStack();
+                if (stack == null || stack.getType() != Material.DIAMOND_SWORD) continue;
+                ItemMeta sm = stack.getItemMeta();
+                if (sm == null) continue;
+                // heuristique : s'il contient notre nom JSON brut, on l'identifie
+                if (sm.hasDisplayName() && sm.getDisplayName().contains("Épée du Dragon")) {
+                    sm.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
+                    sm.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
+                    stack.setItemMeta(sm);
+                    dropped.setItemStack(stack);
 
-            // 3) Après le /give : attend 1 tick puis trouve l'item donné, applique PDC et replace dans slot d'origine
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                // 3.a Cherche l'item dans l'inventaire (priorité au nom JSON brut)
-                int givenIndex = findGivenSwordIndex(player);
-
-                if (givenIndex != -1) {
-                    ItemStack given = player.getInventory().getItem(givenIndex);
-                    if (given != null) {
-                        ItemMeta gmeta = given.getItemMeta();
-                        if (gmeta != null) {
-                            // applique nom lisible et PDC serveur
-                            gmeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
-                            gmeta.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
-                            given.setItemMeta(gmeta);
-                        }
-
-                        // replace au slot d'origine si on l'a trouvé
-                        if (finalSlot >= 0) {
-                            if (givenIndex != finalSlot) {
-                                player.getInventory().setItem(givenIndex, null);
-                                player.getInventory().setItem(finalSlot, given);
-                            }
-                        }
-                        player.updateInventory();
-                        return;
-                    }
+                    applied = true;
+                    break;
                 }
+            }
 
-                // 3.b Si non dans l'inventaire, cherche un drop proche (overflow)
-                boolean applied = false;
-                World w = player.getWorld();
-                Location loc = player.getLocation();
-                for (Entity e : w.getNearbyEntities(loc, 4.0, 4.0, 4.0)) {
-                    if (!(e instanceof Item)) continue;
-                    Item dropped = (Item) e;
-                    ItemStack stack = dropped.getItemStack();
-                    if (stack == null || stack.getType() != Material.DIAMOND_SWORD) continue;
-                    ItemMeta sm = stack.getItemMeta();
-                    if (sm == null) continue;
-
-                    // si le give a laissé le JSON brut, on le reconnaît par contains
-                    if (sm.hasDisplayName() && sm.getDisplayName().contains("\"Épée du Dragon\"")) {
-                        // applique nom lisible + PDC
-                        sm.setDisplayName(ChatColor.LIGHT_PURPLE + "Épée du Dragon");
-                        sm.getPersistentDataContainer().set(dragonSwordKey, PersistentDataType.STRING, "true");
-                        stack.setItemMeta(sm);
-                        dropped.setItemStack(stack);
-
-                        // si on a le slot d'origine, on tente de remettre l'item dans l'inventaire
-                        if (finalSlot >= 0) {
-                            player.getInventory().setItem(finalSlot, stack);
-                            dropped.remove();
-                        }
-                        applied = true;
-                        break;
-                    }
-                }
-
-                if (!applied) {
-                    plugin.getLogger().warning("pvpheads: n'a pas trouvé l'épée donnée pour " + player.getName() + " (possible overflow/ timing).");
-                }
-            }, 1L);
-
+            if (!applied) {
+                plugin.getLogger().warning("pvpheads: n'a pas trouvé l'épée donnée pour " + player.getName() + " (possible overflow/ timing).");
+            }
         }, 1L);
     }
 
