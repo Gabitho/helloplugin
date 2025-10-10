@@ -21,5 +21,21 @@ public class Main extends JavaPlugin {
 
         // Enregistre la recette de l'épée du dragon
         new DragonSwordRecipe(this);
+
+        //Mob
+        DisplayMobManager displayMobManager = new DisplayMobManager(this);
+        DisplayMobListener displayMobListener = new DisplayMobListener(this, displayMobManager);
+        getServer().getPluginManager().registerEvents(displayMobListener, this);
+
+        // spawn test (delai pour que le monde soit prêt)
+        getServer().getScheduler().runTaskLater(this, () -> {
+            displayMobManager.spawn(getServer().getWorlds().get(0).getSpawnLocation().clone().add(2,1,2), 1.1f, 3);
+        }, 40L);
+
+    }
+
+    @Override
+    public void onDisable(){
+        displayMobManager.removeAll()
     }
 }
