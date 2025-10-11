@@ -41,6 +41,7 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable(){
+        DisplayMobManager displayMobManager = new DisplayMobManager(this);
         displayMobManager.removeAll();
     }
 }
