@@ -33,7 +33,6 @@ public class DisplayMobManager {
         return MOB_MAP.get(id);
     }
 
-<<<<<<< HEAD
     public class DisplayMobManagerException extends Exception {
         public DisplayMobManagerException() {
             super();
