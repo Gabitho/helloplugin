@@ -33,15 +33,16 @@ public class DisplayMobManager {
         return MOB_MAP.get(id);
     }
 
-    public DisplayMobManagerException() {
-        super();
-    }
+<<<<<<< HEAD
+    public class DisplayMobManagerException extends Exception {
+        public DisplayMobManagerException() {
+            super();
+        }
 
-    public DisplayMobManagerException(String message) {
-        super(message);
+        public DisplayMobManagerException(String message) {
+            super(message);
+        }
     }
-}
-
 
     public void remove(UUID id) {
         DisplayMob mob = MOB_MAP.remove(id);
