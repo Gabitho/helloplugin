@@ -31,7 +31,8 @@ public class Main extends JavaPlugin {
         DisplayMobManager displayMobManager = new DisplayMobManager(this);
         DisplayMobListener displayMobListener = new DisplayMobListener(this, displayMobManager);
         getServer().getPluginManager().registerEvents(displayMobListener, this);
-
+        this.getCommand("spawnpassivemob").setExecutor(new com.pvpheads.commands.SpawnPassiveMobCommand(this, displayMobManager));
+        
         // spawn test (delai pour que le monde soit prêt)
         getServer().getScheduler().runTaskLater(this, () -> {
             displayMobManager.spawn(getServer().getWorlds().get(0).getSpawnLocation().clone().add(2,1,2), 1.1f, 3);
