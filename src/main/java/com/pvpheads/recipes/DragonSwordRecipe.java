@@ -17,6 +17,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
