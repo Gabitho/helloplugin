@@ -18,11 +18,11 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'com.pvpheads.Main'
+processResources {
+    filesMatching('plugin.yml') {
+        expand(project.properties)
     }
 }
