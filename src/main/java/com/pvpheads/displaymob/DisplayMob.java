@@ -209,7 +209,7 @@ public class DisplayMob {
 
         if (!hitboxEntities.isEmpty()) {
             Slime mainHitbox = hitboxEntities.get(0);
-            mainHitbox.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_LARGE, mainHitbox.getLocation(), 1, 0.4, 0.4, 0.4);
+            mainHitbox.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, mainHitbox.getLocation(), 1, 0.4, 0.4, 0.4);
             mainHitbox.getWorld().playSound(mainHitbox.getLocation(), org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
             mainHitbox.getWorld().dropItemNaturally(mainHitbox.getLocation(), new ItemStack(Material.DIAMOND)); // exemple de drop
         }
