@@ -17,7 +17,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -136,40 +135,4 @@ public class DragonSwordRecipe implements Listener {
         event.getInventory().setResult(dragonSwordTemplate.clone());
     }
 
-    @EventHandler
-    public void onCraftItem(CraftItemEvent event) {
-        if (event.getRecipe() == null) return;
-        if (!(event.getRecipe() instanceof ShapedRecipe shaped)) return;
-        if (!shaped.getKey().equals(recipeKey)) return;
-        if (!(event.getWhoClicked() instanceof Player)) return;
-
-        Player player = (Player) event.getWhoClicked();
-
-        // Annule le transfert vanilla : on va gérer nous‑même
-        event.setCancelled(true);
-
-        // Consommation manuelle de la matrice de craft (force la consommation de l’épée ingrédient)
-        try {
-            CraftingInventory inv = (CraftingInventory) event.getInventory();
-            ItemStack[] matrix = inv.getMatrix();
-            for (int i = 0; i < matrix.length; i++) {
-                ItemStack it = matrix[i];
-                if (it != null && it.getType() == Material.DIAMOND_SWORD) {
-                    matrix[i] = null;
-                    break;
-                }
-            }
-            inv.setMatrix(matrix);
-        } catch (Exception ex) {
-            plugin.getLogger().warning("Erreur en consommant la matrice: " + ex.getMessage());
-        }
-
-        // Création de l’ItemStack spécial pour le joueur
-        ItemStack givenSword = dragonSwordTemplate.clone();
-        player.getInventory().addItem(givenSword);
-        player.updateInventory();
-
-        // On peut retirer la snapshot & recherche complexe — plus nécessaire.
-
-    }
 }
