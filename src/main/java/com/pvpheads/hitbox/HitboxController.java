@@ -47,7 +47,7 @@ public class HitboxController {
     public UUID readLastInteraction() {
         Interaction.PreviousInteraction prev = hitbox.getLastInteraction();
         if (prev != null) {
-            return prev.source().getUniqueId();
+            return prev.getPlayer().getUniqueId();
         }
         return null;
     }
@@ -59,7 +59,7 @@ public class HitboxController {
     public UUID readLastAttack() {
         Interaction.PreviousInteraction prev = hitbox.getLastAttack();
         if (prev != null) {
-            return prev.source().getUniqueId();
+            return prev.getPlayer().getUniqueId();
         }
         return null;
     }
