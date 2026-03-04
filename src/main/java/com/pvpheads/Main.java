@@ -6,9 +6,6 @@ import com.pvpheads.listeners.DragonSwordListener;
 import com.pvpheads.recipes.DragonSwordRecipe;
 
 
-import com.pvpheads.displaymob.DisplayMobManager;
-import com.pvpheads.displaymob.DisplayMobListener;
-
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -27,22 +24,5 @@ public class Main extends JavaPlugin {
         // Enregistre la recette de l'épée du dragon
         new DragonSwordRecipe(this);
 
-        //Mob
-        DisplayMobManager displayMobManager = new DisplayMobManager(this);
-        DisplayMobListener displayMobListener = new DisplayMobListener(this, displayMobManager);
-        getServer().getPluginManager().registerEvents(displayMobListener, this);
-        this.getCommand("spawnpassivemob").setExecutor(new com.pvpheads.commands.SpawnPassiveMobCommand(this, displayMobManager));
-        
-        // spawn test (delai pour que le monde soit prêt)
-        getServer().getScheduler().runTaskLater(this, () -> {
-            displayMobManager.spawn(getServer().getWorlds().get(0).getSpawnLocation().clone().add(2,1,2), 1.1f, 3);
-        }, 40L);
-
-    }
-
-    @Override
-    public void onDisable(){
-        DisplayMobManager displayMobManager = new DisplayMobManager(this);
-        displayMobManager.removeAll();
     }
 }
