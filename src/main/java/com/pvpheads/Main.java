@@ -1,6 +1,7 @@
 package com.pvpheads;
 
 import com.pvpheads.commands.FakeKillCommand;
+import com.pvpheads.commands.SpawnPassiveMobCommand;
 import com.pvpheads.listeners.PlayerDeathListener;
 import com.pvpheads.listeners.DragonSwordListener;
 import com.pvpheads.recipes.DragonSwordRecipe;
