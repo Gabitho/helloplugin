@@ -19,7 +19,8 @@ public class Main extends JavaPlugin {
         
 
         // Enregistre la commande /fakekill
-        this.getCommand("fakekill").setExecutor(new FakeKillCommand());
+        this.getCommand("fakekill").setExecutor(new FakeKillCommand())
+        this.getCommand("spawnPassiveMob").setExecutor(new SpawnPassiveMobCommand(this));;
 
         // Enregistre la recette de l'épée du dragon
         new DragonSwordRecipe(this);
