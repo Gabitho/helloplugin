@@ -1,6 +1,9 @@
 package com.pvpheads.commands;
 
 import com.pvpheads.Main;
+import com.pvpheads.control.MobControl;
+import com.pvpheads.control.MobControlFactory;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -34,9 +37,8 @@ public class SpawnPassiveMobCommand implements CommandExecutor {
 
         String type = args[0].toLowerCase();
         
-        // TODO : ici on ajoutera le code pour créer le mob via le MobControl/Hitbox
-        player.sendMessage("Commande reçue pour spawn le mob passif : " + type);
-
+        MobControl mob = MobControlFactory.createPig(player.getWorld(), player.getLocation());
+        player.sendMessage("Pig spawn !");
         return true;
     }
 }
