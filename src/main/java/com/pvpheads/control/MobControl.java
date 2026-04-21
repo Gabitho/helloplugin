@@ -1,5 +1,6 @@
 package com.pvpheads.control;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -15,7 +16,7 @@ public class MobControl {
         this.pig = (Pig) world.spawnEntity(location, EntityType.PIG);
         // configuration du mob
         setup();
-        player.sendMessage("Spawn terminé !");
+        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "/say spawn pig !");
     }
 
     private void setup() {
@@ -29,7 +30,7 @@ public class MobControl {
 
         // Optionnel (à réfléchir plus tard)
         // pig.setAI(false); // ← pour debug seulement
-        player.sendMessage("Spawn vie terminé !");
+        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "/say spawn pig vie !");
     }
 
     public Location getLocation() {
