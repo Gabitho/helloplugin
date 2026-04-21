@@ -12,14 +12,16 @@ public class MobControl {
     private final Pig pig;
 
     public MobControl(World world, Location location) {
-        // spawn du mob
         this.pig = (Pig) world.spawnEntity(location, EntityType.PIG);
-        // configuration du mob
+
+        Bukkit.getLogger().info("MobControl constructeur appelé");
+
         setup();
-        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "/say spawn pig !");
+}
     }
 
     private void setup() {
+        Bukkit.getLogger().info("Setup appelé");
         // Vie du mob
         pig.getAttribute(Attribute.MAX_HEALTH).setBaseValue(25.0);
         pig.setHealth(25.0);
@@ -29,8 +31,11 @@ public class MobControl {
         pig.setCollidable(false); // évite collisions bizarres
 
         // Optionnel (à réfléchir plus tard)
-        // pig.setAI(false); // ← pour debug seulement
-        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "/say spawn pig vie !");
+        // pig.setAI(false); // ← pour debug seulement    
+        Bukkit.getServer().dispatchCommand(
+            Bukkit.getServer().getConsoleSender(),
+            "say setup exécuté"
+        );
     }
 
     public Location getLocation() {
