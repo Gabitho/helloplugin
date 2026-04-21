@@ -5,17 +5,17 @@ import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Pig;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Player;
 
 public class MobControl {
-
     private final Pig pig;
 
     public MobControl(World world, Location location) {
         // spawn du mob
         this.pig = (Pig) world.spawnEntity(location, EntityType.PIG);
-
         // configuration du mob
         setup();
+        player.sendMessage("Spawn terminé !");
     }
 
     private void setup() {
@@ -29,6 +29,7 @@ public class MobControl {
 
         // Optionnel (à réfléchir plus tard)
         // pig.setAI(false); // ← pour debug seulement
+        player.sendMessage("Spawn vie terminé !");
     }
 
     public Location getLocation() {
