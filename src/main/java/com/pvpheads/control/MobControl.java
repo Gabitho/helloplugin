@@ -6,7 +6,6 @@ import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Pig;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.Player;
 
 public class MobControl {
     private final Pig pig;
@@ -17,8 +16,8 @@ public class MobControl {
         Bukkit.getLogger().info("MobControl constructeur appelé");
 
         setup();
-}
     }
+    
 
     private void setup() {
         Bukkit.getLogger().info("Setup appelé");
